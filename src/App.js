@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const initialItems = [
   { id: 1, description: "Passports", quantity: 2, packed: false },
-  { id: 2, description: "Socks", quantity: 12, packed: true },
+  { id: 2, description: "Socks", quantity: 12, packed: false },
   { id: 3, description: "Charger", quantity: 12, packed: false },
 ];
 
@@ -13,17 +13,28 @@ const initialItems = [
 
 
 export default function App() {
-  const [additem,setAdditem] = useState([]);
+  const [additem,setAdditem] = useState(initialItems);
+  
+
   function addhandleitem(newItem){
     setAdditem((additem )=> [...additem,newItem]);
     }
-    
+
+    function handleDelete(id){
+      setAdditem(item=>item.filter(item=>item.id !== id));
+      // console.log(additem);
+    }
+    function handleupdate(id){
+      setAdditem(item=>item.map(item=>item.id === id ? {...item, packed:!item.packed} : item));
+      // console.log(additem);
+    }
+
   return (
-    <div className="app"> 
+  <div className="app"> 
         <Logo/>
         <Form  onadditem={addhandleitem}/>
-        <Packing newitem={additem}/>
-        <Stats/>
+        <Packing onhandleupdate={handleupdate} onhandleDelete={handleDelete} newitem={additem}/>
+        <Stats additem={additem}/>
   </div>
   )
 }
@@ -41,7 +52,7 @@ function handleSubmit(e){
 e.preventDefault();
 if (!description) return;
 
-const newItem = {description,quantity,packed:false , id: Date.now()};``
+const newItem = {description,quantity,packed:false , id: Date.now()};
 setDescription('');
 setQuantity(1);
 onadditem(newItem)
@@ -68,31 +79,35 @@ onadditem(newItem)
 )
  }
 
- function Packing({newitem}) {
+ function Packing({newitem,onhandleDelete,onhandleupdate}) {
   return (
     <div className="list"> 
       <ul>
-        {newitem.map(item=><Item item={item} key={item.id}/> )}
+        {newitem.map(item=><Item onhandleupdate={onhandleupdate} onhandleDelete={onhandleDelete} item={item} key={item.id}/> )}
         
       </ul>  
   </div>
   )
  }
 
- function Item({item}) {
+ function Item({item,onhandleDelete,onhandleupdate}) {
 return <li>
+  <input type="checkbox" onChange={()=>onhandleupdate(item.id)}/>
   <span style={item.packed ? {textDecoration:'line-through'} : {}}>
   {item.quantity} {item.description}
   </span>
-  <button>❌</button>
+  <button onClick={()=>onhandleDelete(item.id)}>❌</button>
   </li> 
  }
 
 
- function Stats() {
+ function Stats({additem}) {
+  const numitem = additem.length;
+  const numitempacked = additem.filter(items=>items.packed).length;
+  console.log(numitempacked);
   return (
     <footer className="stats"> 
-      <h3><em>💼 You have ... items on your list, and you already packed ...</em></h3>  
+      <h3><em>💼 You have {numitem} items on your list, and you already packed {numitempacked} </em></h3>  
   </footer>
   )
  }
