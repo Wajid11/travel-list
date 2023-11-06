@@ -29,11 +29,20 @@ export default function App() {
       // console.log(additem);
     }
 
+// hadle clear item//
+function handleclearitem(){
+  const confrim = window.confirm('Deleting all items');
+  if (confrim) setAdditem([]);
+}
+
+
+
+
   return (
   <div className="app"> 
         <Logo/>
         <Form  onadditem={addhandleitem}/>
-        <Packing onhandleupdate={handleupdate} onhandleDelete={handleDelete} newitem={additem}/>
+        <Packing onhandleclearitem={handleclearitem}  onhandleupdate={handleupdate} onhandleDelete={handleDelete} newitem={additem}/>
         <Stats additem={additem}/>
   </div>
   )
@@ -79,13 +88,27 @@ onadditem(newItem)
 )
  }
 
- function Packing({newitem,onhandleDelete,onhandleupdate}) {
+ function Packing({newitem,onhandleDelete,onhandleupdate,onhandleclearitem}) {
+const [orderby,setOrderby] = useState('input');
+let itemorder;
+if(orderby === 'input') itemorder = newitem ;
+if(orderby === 'description') itemorder = newitem.slice().sort((a,b)=>a.description.localeCompare(b.description)) ;
+if(orderby === 'packed') itemorder = newitem.slice().sort((a,b)=>Number(a.packed)- Number(b.packed)) ;
+
+
+
   return (
     <div className="list"> 
       <ul>
-        {newitem.map(item=><Item onhandleupdate={onhandleupdate} onhandleDelete={onhandleDelete} item={item} key={item.id}/> )}
+        {itemorder.map(item=><Item onhandleupdate={onhandleupdate} onhandleDelete={onhandleDelete} item={item} key={item.id}/> )}
         
       </ul>  
+      <select onChange={(e)=> setOrderby(e.target.value)} className="actions" value={orderby}>
+        <option value='input'>select item order by input</option>
+        <option value='description'>select item order by description</option>
+        <option value='packed'>select item order by packed</option>
+      </select>
+      <button onClick={onhandleclearitem} >Clear</button>
   </div>
   )
  }
@@ -102,6 +125,16 @@ return <li>
 
 
  function Stats({additem}) {
+
+if(!additem.length)
+return(
+  <footer className="stats"> 
+  <h3>
+      <em>Start adding items to your packing list🚀</em>
+      </h3>
+  </footer>
+);
+
   const numitem = additem.length;
   const numitempacked = additem.filter(items=>items.packed).length;
   const percentageotem = Math.round((numitempacked/numitem)*100);
